@@ -3,32 +3,95 @@ import { collection, getDocs, doc, runTransaction, serverTimestamp } from "https
 
 let productsData = []; 
 let cart = [];
+let expiringData = []; // Menyimpan data batch yang mau expired
 
 function formatRupiah(angka) {
-  return new Intl.NumberFormat('id-ID', {
-    style: 'currency',
-    currency: 'IDR',
-    minimumFractionDigits: 0 
-  }).format(angka);
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
 }
 
+// 1. Ambil data dari Firestore (Obat & Batch Expired)
 async function fetchProducts() {
   const grid = document.getElementById('product-grid');
   grid.innerHTML = '<p>Loading data obat...</p>';
 
   try {
-    const querySnapshot = await getDocs(collection(db, "medicines"));
+    // A. Ambil Data Obat
+    const medSnapshot = await getDocs(collection(db, "medicines"));
     productsData = [];
-    querySnapshot.forEach((doc) => {
+    medSnapshot.forEach((doc) => {
       productsData.push({ id: doc.id, ...doc.data() });
     });
+
+    // B. Ambil Data Batch untuk Notifikasi Expired
+    const batchSnapshot = await getDocs(collection(db, "inventory_batches"));
+    expiringData = []; // Reset data
+    
+    const today = new Date();
+    const fourMonthsFromNow = new Date();
+    fourMonthsFromNow.setMonth(today.getMonth() + 4);
+
+    batchSnapshot.forEach((doc) => {
+      const batch = doc.data();
+      if (batch.quantity > 0 && batch.expiryDate) {
+        const expDate = new Date(batch.expiryDate);
+        if (expDate <= fourMonthsFromNow) {
+          expiringData.push(batch);
+        }
+      }
+    });
+
+    // C. Update Tampilan Lonceng Notifikasi
+    updateNotifBadge();
     renderProducts(); 
+    
   } catch (error) {
     console.error("Error fetching data: ", error);
     grid.innerHTML = '<p style="color:red;">Gagal memuat data obat.</p>';
   }
 }
 
+// 2. Fungsi Update Lonceng
+function updateNotifBadge() {
+  const badge = document.getElementById('notif-badge');
+  if (expiringData.length > 0) {
+    badge.innerText = expiringData.length;
+    badge.style.display = 'block';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+// 3. Fungsi Buka Modal Expired
+window.openExpiryModal = function() {
+  const listContainer = document.getElementById('expiry-list');
+  
+  if (expiringData.length === 0) {
+    listContainer.innerHTML = '<tr><td colspan="4" style="text-align:center; padding:20px; color:gray;">Aman! Tidak ada obat yang mendekati expired.</td></tr>';
+  } else {
+    // Urutkan dari tanggal yang paling dekat
+    expiringData.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+    
+    listContainer.innerHTML = expiringData.map(batch => {
+      const expDate = new Date(batch.expiryDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' });
+      return `
+        <tr>
+          <td><strong>${batch.medicineName}</strong></td>
+          <td>${batch.batchNumber}</td>
+          <td><span class="badge-date">${expDate}</span></td>
+          <td><strong style="color:var(--accent-red);">${batch.quantity}</strong></td>
+        </tr>
+      `;
+    }).join('');
+  }
+  
+  document.getElementById('expiry-modal').style.display = 'flex';
+}
+
+window.closeExpiryModal = function() {
+  document.getElementById('expiry-modal').style.display = 'none';
+}
+
+// 4. Render Produk POS (Tanpa Badge di Kartu)
 function renderProducts(dataToRender = productsData) {
   const grid = document.getElementById('product-grid');
   
@@ -53,10 +116,10 @@ function renderProducts(dataToRender = productsData) {
   lucide.createIcons();
 }
 
+// ... Sisa kode (addToCart, changeQty, updateCartUI, calculateTotals, search, simpan transaksi) SAMA PERSIS seperti sebelumnya ...
 window.addToCart = function(id) {
   const product = productsData.find(p => p.id === id);
   if (!product || product.stock <= 0) return alert('Stok habis!');
-  
   const existing = cart.find(item => item.id === id);
   if (existing) {
     if (existing.qty >= product.stock) return alert('Melebihi batas stok!');
@@ -70,10 +133,8 @@ window.addToCart = function(id) {
 window.changeQty = function(id, delta) {
   const item = cart.find(i => i.id === id);
   if (!item) return;
-  
   const product = productsData.find(p => p.id === id);
   const newQty = item.qty + delta;
-  
   if (newQty > 0 && newQty <= product.stock) {
     item.qty = newQty;
   } else if (newQty === 0) {
@@ -85,7 +146,6 @@ window.changeQty = function(id, delta) {
 function updateCartUI() {
   const container = document.getElementById('cart-items');
   document.getElementById('cart-count').innerText = cart.length;
-  
   container.innerHTML = cart.map(item => `
     <div class="cart-item" style="display:flex; justify-content:space-between; border-bottom:1px solid #eee; padding-bottom:10px; margin-bottom:10px;">
       <div>
@@ -100,7 +160,6 @@ function updateCartUI() {
       </div>
     </div>
   `).join('');
-  
   calculateTotals();
 }
 
@@ -109,14 +168,11 @@ function calculateTotals() {
   const discountPercent = parseFloat(document.getElementById('discount-percent').value) || 0;
   const discountAmount = (subtotal * discountPercent) / 100;
   const receivable = subtotal - discountAmount;
-  
   document.getElementById('subtotal').innerText = formatRupiah(subtotal);
   document.getElementById('receivable').innerText = formatRupiah(receivable);
   document.getElementById('discount-amount').value = discountAmount;
-  
   const received = parseFloat(document.getElementById('amount-received').value) || 0;
   const totalDue = received - receivable;
-  
   const dueEl = document.getElementById('total-due');
   dueEl.innerText = formatRupiah(Math.abs(totalDue));
   dueEl.style.color = totalDue < 0 ? 'var(--accent-red)' : 'var(--accent-green)';
@@ -132,65 +188,34 @@ document.getElementById('search-input').addEventListener('input', (e) => {
   renderProducts(filteredProducts);
 });
 
-// ==========================================
-// BAGIAN TRANSAKSI YANG SUDAH DIPERBAIKI TOTAL
-// ==========================================
 document.getElementById('btn-save').addEventListener('click', async () => {
   if (cart.length === 0) return alert('Keranjang kosong!');
-  
   const btnSave = document.getElementById('btn-save');
   btnSave.innerText = 'Menyimpan...';
   btnSave.disabled = true;
-
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   
   try {
     await runTransaction(db, async (transaction) => {
-      
-      // TAHAP 1: BACA SEMUA STOK OBAT TERLEBIH DAHULU
       const itemsToUpdate = [];
       for (const item of cart) {
         const medRef = doc(db, "medicines", item.id);
         const medDoc = await transaction.get(medRef);
-        
-        if (!medDoc.exists()) {
-          throw new Error("Obat tidak ditemukan!");
-        }
-        
+        if (!medDoc.exists()) throw new Error("Obat tidak ditemukan!");
         const currentStock = medDoc.data().stock;
-        if (currentStock - item.qty < 0) {
-          throw new Error(`Stok ${item.name} tidak cukup!`);
-        }
-        
-        itemsToUpdate.push({
-          ref: medRef,
-          newStock: currentStock - item.qty
-        });
+        if (currentStock - item.qty < 0) throw new Error(`Stok ${item.name} tidak cukup!`);
+        itemsToUpdate.push({ ref: medRef, newStock: currentStock - item.qty });
       }
-
-      // TAHAP 2: UPDATE STOK (SETELAH SEMUA BACA SELESAI)
       for (const updateData of itemsToUpdate) {
         transaction.update(updateData.ref, { stock: updateData.newStock });
       }
-
-      // TAHAP 3: SIMPAN DATA TRANSAKSI
       const trxRef = doc(collection(db, "transactions"));
       transaction.set(trxRef, {
-        transactionId: trxRef.id,
-        date: serverTimestamp(),
-        items: cart,
-        subtotal: subtotal,
-        total: subtotal,
-        status: "completed",
-        cashier: "Kasir 1"
+        transactionId: trxRef.id, date: serverTimestamp(), items: cart, subtotal: subtotal, total: subtotal, status: "completed", cashier: "Kasir 1"
       });
     });
-
     alert('Transaksi Berhasil Disimpan!');
-    cart = []; 
-    updateCartUI();
-    fetchProducts(); 
-    
+    cart = []; updateCartUI(); fetchProducts(); 
   } catch (error) {
     console.error("Transaksi gagal: ", error);
     alert('Gagal menyimpan transaksi: ' + error.message);
