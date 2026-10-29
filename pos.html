@@ -8,11 +8,26 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/pos.css">
   <link rel="stylesheet" href="css/responsive.css">
+  
+  <style>
+    /* Style khusus Notifikasi */
+    .notif-container { position: relative; cursor: pointer; display: flex; align-items: center; justify-content: center; margin-right: 10px; }
+    .notif-badge { position: absolute; top: -5px; right: -5px; background: var(--accent-red); color: white; font-size: 10px; font-weight: bold; padding: 2px 5px; border-radius: 10px; display: none; border: 2px solid var(--bg-app); }
+    
+    /* Modal Expired */
+    .expiry-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); z-index: 2000; justify-content: center; align-items: center; backdrop-filter: blur(3px); }
+    .expiry-content { background: var(--panel-white); padding: 20px; border-radius: var(--radius-md); width: 95%; max-width: 600px; max-height: 80vh; overflow-y: auto; box-shadow: var(--shadow-soft); }
+    .expiry-content h2 { font-size: 18px; margin-bottom: 15px; color: var(--accent-red); display: flex; align-items: center; gap: 8px; }
+    
+    .expiry-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .expiry-table th, .expiry-table td { padding: 10px; border-bottom: 1px solid #eee; text-align: left; }
+    .expiry-table th { background: #F9FAFB; color: var(--text-secondary); font-weight: 600; }
+    .badge-date { padding: 4px 8px; border-radius: 4px; font-size: 11px; font-weight: bold; background: #FEE2E2; color: #991B1B; }
+  </style>
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
   <div class="app-container">
-    <!-- SIDEBAR -->
     <aside class="sidebar">
       <div class="sidebar-top">
         <div class="brand" style="font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 20px;">Simply<br>Meds</div>
@@ -31,7 +46,6 @@
       </div>
     </aside>
 
-    <!-- MAIN CONTENT -->
     <div class="main-wrapper">
       <header class="header">
         <div class="header-left">
@@ -40,18 +54,22 @@
         <div class="header-right">
           <div class="search-bar">
             <i data-lucide="search" size="18"></i>
-            <!-- INPUT PENCARIAN DENGAN ID -->
             <input type="text" id="search-input" placeholder="Cari Nama atau Barcode...">
           </div>
+          
+          <!-- IKON LONCENG NOTIFIKASI EXPIRED -->
+          <div class="notif-container" onclick="openExpiryModal()" title="Obat Mendekati Expired">
+            <i data-lucide="bell" color="var(--text-primary)"></i>
+            <span class="notif-badge" id="notif-badge">0</span>
+          </div>
+
           <button class="icon-btn"><i data-lucide="help-circle"></i></button>
           <button class="icon-btn"><i data-lucide="grid"></i></button>
         </div>
       </header>
 
       <div class="pos-layout">
-        <!-- LEFT: PRODUCTS & CUSTOMER -->
         <div class="pos-main">
-          <!-- Next Orders Row -->
           <div class="next-orders">
             <span class="section-title">NEXT ORDERS</span>
             <div class="order-list">
@@ -60,7 +78,6 @@
             </div>
           </div>
 
-          <!-- Active Customer Info -->
           <div class="customer-info">
             <div class="cust-header">
               <img src="https://i.pravatar.cc/150?img=5" alt="Faysal">
@@ -74,21 +91,15 @@
             </div>
           </div>
 
-          <!-- Product Grid -->
-          <div class="product-grid" id="product-grid">
-            <!-- Products injected via JS -->
-          </div>
+          <div class="product-grid" id="product-grid"></div>
         </div>
 
-        <!-- RIGHT: CART & PAYMENT -->
         <div class="pos-cart">
           <div class="cart-header">
             <h3>MEDICINE <span class="cart-count" id="cart-count">0</span></h3>
           </div>
           
-          <div class="cart-items" id="cart-items">
-            <!-- Cart items injected via JS -->
-          </div>
+          <div class="cart-items" id="cart-items"></div>
 
           <div class="payment-panel">
             <div class="payment-row">
@@ -132,6 +143,27 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+
+  <!-- MODAL DAFTAR OBAT EXPIRED -->
+  <div class="expiry-modal" id="expiry-modal">
+    <div class="expiry-content">
+      <h2><i data-lucide="alert-triangle"></i> Peringatan Expired (< 4 Bulan)</h2>
+      <table class="expiry-table">
+        <thead>
+          <tr>
+            <th>Nama Obat</th>
+            <th>No. Batch</th>
+            <th>Tgl Expired</th>
+            <th>Sisa Stok</th>
+          </tr>
+        </thead>
+        <tbody id="expiry-list">
+          <!-- Diisi oleh JS -->
+        </tbody>
+      </table>
+      <button onclick="closeExpiryModal()" style="margin-top: 20px; width: 100%; padding: 12px; background: var(--bg-dark); color: white; border: none; border-radius: 8px; font-weight: bold; cursor: pointer;">Tutup</button>
     </div>
   </div>
   
