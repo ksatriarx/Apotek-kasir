@@ -1,0 +1,126 @@
+/* css/responsive.css */
+
+/* --- TAMPILAN TABLET & HP (Layar di bawah 768px) --- */
+@media screen and (max-width: 768px) {
+  
+  /* 1. Reset Container Utama */
+  body {
+    padding: 0;
+  }
+  .app-container {
+    height: 100vh;
+    border-radius: 0;
+    border: none;
+    flex-direction: column; /* Ubah layout jadi atas-bawah */
+  }
+
+  /* 2. Ubah Sidebar jadi Bottom Navigation */
+  .sidebar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 65px;
+    flex-direction: row; /* Ikon berjejer ke samping */
+    border-right: none;
+    border-top: 1px solid var(--border-color);
+    padding: 0 10px;
+    z-index: 999;
+    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  }
+  .sidebar-top, .sidebar-bottom .avatar, .sidebar-bottom .nav-item:first-child {
+    display: none; /* Sembunyikan logo dan profil di HP */
+  }
+  .sidebar-menu {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+    align-items: center;
+  }
+  .sidebar-bottom {
+    display: flex;
+    align-items: center;
+  }
+  
+  /* Beri ruang di bawah agar konten tidak tertutup navigasi */
+  .main-wrapper {
+    padding-bottom: 65px;
+    height: 100%;
+  }
+
+  /* 3. Perbaiki Header */
+  .header {
+    padding: 0 15px;
+    height: 60px;
+  }
+  .header-left h1 {
+    font-size: 16px;
+  }
+  .search-bar {
+    width: 140px; /* Kecilkan kolom search */
+    padding: 5px 10px;
+  }
+
+  /* 4. Layout POS (Kasir) */
+  .pos-layout {
+    flex-direction: column;
+    padding: 10px;
+    gap: 15px;
+    overflow-y: auto;
+  }
+  
+  .pos-main {
+    gap: 15px;
+  }
+
+  /* Next Orders bisa digeser ke samping */
+  .order-list {
+    overflow-x: auto;
+    padding-bottom: 5px;
+  }
+  .order-chip {
+    flex-shrink: 0; /* Jangan biarkan chip mengecil */
+  }
+
+  /* Info Pelanggan menyesuaikan layar */
+  .customer-info {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .membership-status {
+    align-self: flex-start;
+  }
+
+  /* Grid Produk jadi 2 Kolom di HP */
+  .product-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .product-card {
+    padding: 10px;
+  }
+  .product-img {
+    height: 70px;
+  }
+
+  /* 5. Panel Keranjang & Pembayaran */
+  .pos-cart {
+    width: 100%;
+    min-height: 400px; /* Beri tinggi minimal */
+  }
+
+  /* 6. Layout Dashboard */
+  .dashboard-grid {
+    grid-template-columns: 1fr; /* Ubah jadi 1 kolom ke bawah */
+    padding: 10px;
+  }
+  
+  /* Reset posisi grid dashboard yang tadinya span 4, 5, dll */
+  .medicine-info, .active-salesman, .prescriptions, 
+  .recent-orders, .stock-alert, .expired, 
+  .expiring-soon, .invoices {
+    grid-column: 1 / -1 !important; 
+    grid-row: auto !important;
+  }
+}
