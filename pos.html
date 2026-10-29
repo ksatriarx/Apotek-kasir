@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimplyMeds - Point of Sale</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/pos.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand" style="font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 20px;">Simply<br>Meds</div>
+      </div>
+      <div class="sidebar-menu">
+        <div class="nav-item" onclick="window.location.href='dashboard.html'"><i data-lucide="home"></i></div>
+        <div class="nav-item active" onclick="window.location.href='pos.html'"><i data-lucide="shopping-bag"></i></div>
+        <div class="nav-item" onclick="window.location.href='customers.html'"><i data-lucide="users"></i></div>
+        <div class="nav-item" onclick="window.location.href='transactions.html'"><i data-lucide="file-text"></i></div>
+        <div class="nav-item" onclick="window.location.href='medicines.html'"><i data-lucide="pill"></i></div>
+        <div class="nav-item" onclick="window.location.href='inventory.html'"><i data-lucide="package"></i></div>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="nav-item"><i data-lucide="power"></i></div>
+        <img src="https://i.pravatar.cc/150?img=11" alt="User" class="avatar">
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+      <header class="header">
+        <div class="header-left">
+          <h1>Pharmacy Point Of Sale (POS)</h1>
+        </div>
+        <div class="header-right">
+          <div class="search-bar">
+            <i data-lucide="search" size="18"></i>
+            <!-- INPUT PENCARIAN DENGAN ID -->
+            <input type="text" id="search-input" placeholder="Cari Nama atau Barcode...">
+          </div>
+          <button class="icon-btn"><i data-lucide="help-circle"></i></button>
+          <button class="icon-btn"><i data-lucide="grid"></i></button>
+        </div>
+      </header>
+
+      <div class="pos-layout">
+        <!-- LEFT: PRODUCTS & CUSTOMER -->
+        <div class="pos-main">
+          <!-- Next Orders Row -->
+          <div class="next-orders">
+            <span class="section-title">NEXT ORDERS</span>
+            <div class="order-list">
+              <div class="order-chip active"><img src="https://i.pravatar.cc/150?img=3" alt=""><span>Amir</span><span class="badge opd">OPD</span></div>
+              <div class="order-chip"><img src="https://i.pravatar.cc/150?img=4" alt=""><span>Zafir</span><span class="badge ipd">IPD</span></div>
+            </div>
+          </div>
+
+          <!-- Active Customer Info -->
+          <div class="customer-info">
+            <div class="cust-header">
+              <img src="https://i.pravatar.cc/150?img=5" alt="Faysal">
+              <div>
+                <h4>Faysal Hossain (PID: 5555)</h4>
+                <p>26 Y/M | 01680054682</p>
+              </div>
+            </div>
+            <div class="membership-status">
+              <i data-lucide="alert-circle" size="16"></i> Membership is not active
+            </div>
+          </div>
+
+          <!-- Product Grid -->
+          <div class="product-grid" id="product-grid">
+            <!-- Products injected via JS -->
+          </div>
+        </div>
+
+        <!-- RIGHT: CART & PAYMENT -->
+        <div class="pos-cart">
+          <div class="cart-header">
+            <h3>MEDICINE <span class="cart-count" id="cart-count">0</span></h3>
+          </div>
+          
+          <div class="cart-items" id="cart-items">
+            <!-- Cart items injected via JS -->
+          </div>
+
+          <div class="payment-panel">
+            <div class="payment-row">
+              <span>Sub Total</span>
+              <span id="subtotal">Rp 0</span>
+            </div>
+            <div class="payment-row">
+              <span>Discount</span>
+              <div class="discount-inputs">
+                <span>%</span>
+                <input type="number" id="discount-percent" value="0" min="0" max="100">
+                <span>Rp</span>
+                <input type="number" id="discount-amount" value="0" readonly>
+              </div>
+            </div>
+            <div class="payment-row highlight">
+              <span>Receivable</span>
+              <span id="receivable">Rp 0</span>
+            </div>
+            <div class="payment-row">
+              <span>Received</span>
+              <input type="number" id="amount-received" value="0" class="amount-input">
+            </div>
+            <div class="payment-row due">
+              <span>Total Due</span>
+              <span id="total-due">Rp 0</span>
+            </div>
+
+            <div class="payment-methods">
+              <button class="method-btn active">CASH</button>
+              <button class="method-btn">CARD</button>
+              <button class="method-btn">CODE</button>
+            </div>
+
+            <div class="deposit-info">
+              <span>Deposit To</span>
+              <select><option>Pharmacy Counter 1</option></select>
+            </div>
+
+            <button class="save-btn" id="btn-save">SAVE <i data-lucide="chevron-up"></i></button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script src="js/pos.js" type="module"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

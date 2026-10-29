@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimplyMeds - Data Pelanggan</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  
+  <style>
+    .page-content { padding: 20px; height: calc(100% - 70px); overflow-y: auto; }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    
+    .btn-primary {
+      background: var(--accent-yellow); color: var(--text-primary);
+      border: none; padding: 10px 20px; border-radius: var(--radius-sm);
+      font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px;
+    }
+
+    .table-container {
+      background: var(--panel-white); border-radius: var(--radius-md);
+      border: 1px solid var(--border-color); overflow-x: auto;
+    }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th, td { padding: 15px; border-bottom: 1px solid var(--border-color); }
+    th { background-color: #f9f9f9; font-weight: 600; color: var(--text-secondary); }
+
+    /* Badge Status */
+    .badge-member { background: #DBEAFE; color: #1E40AF; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+    .badge-regular { background: #F3F4F6; color: #4B5563; padding: 4px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+
+    /* Tombol Aksi */
+    .btn-icon { background: none; border: none; cursor: pointer; padding: 5px; border-radius: 4px; margin-right: 5px; }
+    .btn-edit { color: var(--accent-blue); }
+    .btn-delete { color: var(--accent-red); }
+
+    /* Modal */
+    .modal-overlay {
+      display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center;
+    }
+    .modal-content {
+      background: var(--panel-white); padding: 30px; border-radius: var(--radius-md);
+      width: 90%; max-width: 500px; box-shadow: var(--shadow-soft);
+    }
+    .modal-content h2 { margin-bottom: 20px; font-size: 18px; }
+    .form-group { margin-bottom: 15px; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 13px; font-weight: 500; }
+    .form-group input, .form-group select {
+      width: 100%; padding: 10px; border: 1px solid var(--border-color);
+      border-radius: var(--radius-sm); font-family: var(--font-family);
+    }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .btn-cancel { background: #e5e5e5; border: none; padding: 10px 20px; border-radius: var(--radius-sm); cursor: pointer; }
+  </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand" style="font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 20px;">Simply<br>Meds</div>
+      </div>
+      <div class="sidebar-menu">
+        <div class="nav-item" onclick="window.location.href='dashboard.html'"><i data-lucide="home"></i></div>
+        <div class="nav-item" onclick="window.location.href='pos.html'"><i data-lucide="shopping-bag"></i></div>
+        <div class="nav-item active" onclick="window.location.href='customers.html'"><i data-lucide="users"></i></div>
+        <div class="nav-item" onclick="window.location.href='transactions.html'"><i data-lucide="file-text"></i></div>
+        <div class="nav-item" onclick="window.location.href='medicines.html'"><i data-lucide="pill"></i></div>
+        <div class="nav-item" onclick="window.location.href='inventory.html'"><i data-lucide="package"></i></div>       </div>
+      <div class="sidebar-bottom">
+        <div class="nav-item"><i data-lucide="power"></i></div>
+        <img src="https://i.pravatar.cc/150?img=11" alt="User" class="avatar">
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-wrapper">
+      <header class="header">
+        <div class="header-left"><h1>Data Pelanggan</h1></div>
+      </header>
+
+      <div class="page-content">
+        <div class="action-bar">
+          <h2>Daftar Pelanggan</h2>
+          <button class="btn-primary" onclick="openModal()">
+            <i data-lucide="user-plus" size="18"></i> Tambah Pelanggan
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Pelanggan</th>
+                <th>No. Telepon</th>
+                <th>Alamat</th>
+                <th>Status</th>
+                <th>Aksi</th>
+              </tr>
+            </thead>
+            <tbody id="customer-list">
+              <!-- Data akan diisi oleh JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL POPUP -->
+  <div class="modal-overlay" id="customer-modal">
+    <div class="modal-content">
+      <h2 id="modal-title">Tambah Pelanggan Baru</h2>
+      <form id="customer-form">
+        <input type="hidden" id="cust-id">
+        
+        <div class="form-group">
+          <label>Nama Lengkap</label>
+          <input type="text" id="cust-name" required placeholder="Contoh: Budi Santoso">
+        </div>
+        <div class="form-group">
+          <label>No. Telepon / WhatsApp</label>
+          <input type="tel" id="cust-phone" required placeholder="Contoh: 08123456789">
+        </div>
+        <div class="form-group">
+          <label>Alamat</label>
+          <input type="text" id="cust-address" placeholder="Contoh: Jl. Merdeka No. 10">
+        </div>
+        <div class="form-group">
+          <label>Status Pelanggan</label>
+          <select id="cust-status">
+            <option value="Regular">Regular (Umum)</option>
+            <option value="Member">Member (Langganan)</option>
+          </select>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal()">Batal</button>
+          <button type="submit" class="btn-primary" id="btn-submit">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="js/customers.js" type="module"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

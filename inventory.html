@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimplyMeds - Penerimaan Barang (Bon)</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  
+  <style>
+    .page-content { padding: 15px; height: calc(100% - 70px); overflow-y: auto; }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    
+    .btn-primary {
+      background: var(--accent-yellow); color: var(--text-primary);
+      border: none; padding: 10px 18px; border-radius: 30px;
+      font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 13px;
+      box-shadow: 0 4px 10px rgba(255, 233, 74, 0.3); transition: all 0.2s;
+    }
+
+    /* TABEL RIWAYAT SUPER KECIL */
+    .table-container { background: var(--panel-white); border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.03); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+    th, td { padding: 8px 4px; border-bottom: 1px solid #F3F4F6; text-align: center; word-wrap: break-word; }
+    th { background-color: #FAFAFA; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; font-size: 9px; }
+    tr:hover td { background-color: #F9FAFB; }
+    
+    /* Lebar Kolom Proporsional */
+    th:nth-child(1) { width: 22%; } /* No Bon */
+    th:nth-child(2) { width: 33%; } /* Supplier */
+    th:nth-child(3) { width: 20%; } /* Tanggal */
+    th:nth-child(4) { width: 10%; } /* Macam */
+    th:nth-child(5) { width: 15%; } /* Qty */
+
+    /* Modal Modern */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); backdrop-filter: blur(3px); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-content { background: var(--bg-app); padding: 20px; border-radius: 16px; width: 95%; max-width: 600px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); max-height: 90vh; overflow-y: auto; }
+    
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .modal-header h2 { font-size: 18px; margin: 0; font-weight: 700; }
+    .notif-badge { background: var(--accent-blue); color: white; padding: 6px 12px; border-radius: 30px; font-size: 11px; font-weight: 700; display: none; }
+
+    .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+    .form-group { flex: 1; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 11px; font-weight: 600; color: var(--text-secondary); }
+    .form-group input, .form-group select { width: 100%; padding: 10px; border: none; border-radius: 8px; font-family: var(--font-family); font-size: 13px; background: var(--panel-white); box-shadow: inset 0 1px 3px rgba(0,0,0,0.05); }
+    .form-group input:focus, .form-group select:focus { outline: none; box-shadow: 0 0 0 2px var(--accent-blue); }
+
+    /* Scan Box */
+    .scan-box { background: var(--panel-white); padding: 12px; border-radius: 12px; margin-bottom: 15px; display: flex; gap: 10px; align-items: flex-end; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #E5E7EB; }
+    .scan-box .form-group { margin-bottom: 0; }
+    .scan-box input { border: 2px solid var(--accent-blue); font-size: 15px; font-weight: 700; color: var(--accent-blue); text-align: center; }
+    .btn-scan-search { background: var(--accent-blue); color: white; border: none; padding: 10px 18px; border-radius: 8px; font-weight: bold; cursor: pointer; font-size: 13px; height: 41px; }
+
+    /* Card Item di dalam Modal */
+    #item-list { display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
+    .item-card { background: var(--panel-white); padding: 12px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.03); border: 1px solid #F3F4F6; }
+    .stock-info { font-size: 11px; color: var(--accent-blue); margin-top: 5px; font-weight: 600; }
+
+    .btn-add-item { background: transparent; border: 2px dashed var(--border-color); color: var(--text-secondary); padding: 10px; border-radius: 8px; cursor: pointer; margin-top: 15px; font-size: 12px; font-weight: 600; width: 100%; }
+    .btn-remove-item { background: #FEE2E2; color: #991B1B; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; font-weight: bold; height: 41px; width: 45px; display: flex; justify-content: center; align-items: center; }
+
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 15px; border-top: 1px solid #E5E7EB; }
+    .btn-cancel { background: var(--panel-white); border: 1px solid var(--border-color); padding: 10px 18px; border-radius: 30px; cursor: pointer; font-weight: 600; font-size: 13px; color: var(--text-secondary); }
+  </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-top"><div class="brand" style="font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 20px;">Simply<br>Meds</div></div>
+      <div class="sidebar-menu">
+        <div class="nav-item" onclick="window.location.href='dashboard.html'"><i data-lucide="home"></i></div>
+        <div class="nav-item" onclick="window.location.href='pos.html'"><i data-lucide="shopping-bag"></i></div>
+        <div class="nav-item" onclick="window.location.href='customers.html'"><i data-lucide="users"></i></div>
+        <div class="nav-item" onclick="window.location.href='transactions.html'"><i data-lucide="file-text"></i></div>
+        <div class="nav-item" onclick="window.location.href='medicines.html'"><i data-lucide="pill"></i></div>
+        <div class="nav-item active" onclick="window.location.href='inventory.html'"><i data-lucide="package"></i></div>
+      </div>
+      <div class="sidebar-bottom"><div class="nav-item"><i data-lucide="power"></i></div><img src="https://i.pravatar.cc/150?img=11" alt="User" class="avatar"></div>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="header"><div class="header-left"><h1>Penerimaan Barang</h1></div></header>
+
+      <div class="page-content">
+        <div class="action-bar">
+          <h2 style="font-size:16px; font-weight:700;">Riwayat Bon</h2>
+          <button class="btn-primary" onclick="openModal()"><i data-lucide="plus" size="16"></i> Bon Baru</button>
+        </div>
+
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>No. Bon</th>
+                <th>Supplier</th>
+                <th>Tanggal</th>
+                <th>Mcm</th>
+                <th>Qty</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL INPUT BON -->
+  <div class="modal-overlay" id="inventory-modal">
+    <div class="modal-content">
+      
+      <div class="modal-header">
+        <h2>Input Bon Baru</h2>
+        <div class="notif-badge" id="total-notif">Total: 0 Qty</div>
+      </div>
+      
+      <div class="form-row">
+        <div class="form-group">
+          <label>No. Bon</label>
+          <input type="text" id="inv-bill" required placeholder="INV-001">
+        </div>
+        <div class="form-group">
+          <label>Tanggal</label>
+          <input type="date" id="inv-date" required>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Supplier</label>
+        <input type="text" id="inv-supplier" list="supplier-list" required placeholder="Ketik atau pilih supplier...">
+        <datalist id="supplier-list"></datalist>
+      </div>
+
+      <!-- SCAN BAR -->
+      <div class="scan-box">
+        <div class="form-group" style="flex:1;">
+          <label style="color:var(--accent-blue); font-size:10px;"><i data-lucide="scan-barcode" size="12" style="vertical-align:middle; margin-right:3px;"></i> Scan / Ketik Kode</label>
+          <input type="text" id="scan-barcode" placeholder="Contoh: 0001">
+        </div>
+        <button type="button" class="btn-scan-search" onclick="processScan()">Cari</button>
+      </div>
+
+      <datalist id="batch-list"></datalist>
+
+      <div id="item-list"></div>
+      
+      <button type="button" class="btn-add-item" onclick="addItemRow()">+ Tambah Baris Manual</button>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-cancel" onclick="closeModal()">Batal</button>
+        <button type="button" class="btn-primary" id="btn-submit" onclick="saveBon()">Simpan</button>
+      </div>
+    </div>
+  </div>
+  
+  <script src="js/inventory.js" type="module"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

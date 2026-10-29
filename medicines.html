@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimplyMeds - Data Obat</title>
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  
+  <style>
+    .page-content { padding: 10px; height: calc(100% - 70px); overflow-y: auto; }
+    .action-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .btn-primary { background: var(--accent-yellow); color: var(--text-primary); border: none; padding: 8px 12px; border-radius: var(--radius-sm); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 5px; font-size: 12px; }
+    
+    .table-container { background: var(--panel-white); border-radius: var(--radius-sm); border: 1px solid var(--border-color); overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 11px; table-layout: fixed; }
+    
+    th, td { 
+      padding: 5px 2px;
+      border-bottom: 1px solid var(--border-color); 
+      word-wrap: break-word;
+      vertical-align: middle;
+    }
+    
+    th { background-color: #f9f9f9; font-weight: 600; color: var(--text-secondary); font-size: 9px; text-align: center; }
+    td { text-align: center; }
+    td:nth-child(2) { text-align: left; }
+    
+    th:nth-child(1) { width: 20%; }
+    th:nth-child(2) { width: 25%; }
+    th:nth-child(3) { width: 15%; }
+    th:nth-child(4) { width: 15%; }
+    th:nth-child(5) { width: 10%; }
+    th:nth-child(6) { width: 15%; }
+
+    .badge-stock { padding: 2px 4px; border-radius: 4px; font-weight: bold; font-size: 9px; display: inline-block; }
+    .stock-safe { background: #D1FAE5; color: #065F46; }
+    .stock-low { background: #FEF3C7; color: #92400E; }
+    .stock-out { background: #FEE2E2; color: #991B1B; }
+    
+    .btn-icon { background: none; border: none; cursor: pointer; padding: 0; border-radius: 4px; }
+    .btn-edit { color: var(--accent-blue); }
+    .btn-delete { color: var(--accent-red); }
+    .btn-icon svg { width: 14px; height: 14px; }
+
+    /* Modal */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; }
+    .modal-content { background: var(--panel-white); padding: 20px; border-radius: var(--radius-md); width: 95%; max-width: 500px; box-shadow: var(--shadow-soft); max-height: 90vh; overflow-y: auto; }
+    .modal-content h2 { margin-bottom: 15px; font-size: 16px; }
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; margin-bottom: 5px; font-size: 12px; font-weight: 500; }
+    .form-group input { width: 100%; padding: 8px; border: 1px solid var(--border-color); border-radius: var(--radius-sm); font-family: var(--font-family); font-size: 13px; }
+    .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 15px; }
+    .btn-cancel { background: #e5e5e5; border: none; padding: 8px 15px; border-radius: var(--radius-sm); cursor: pointer; font-size: 13px; }
+    .input-group { display: flex; gap: 5px; }
+    .btn-generate { background: #e5e5e5; border: none; padding: 0 10px; border-radius: var(--radius-sm); cursor: pointer; font-size: 11px; font-weight: bold; }
+  </style>
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+  <div class="app-container">
+    <aside class="sidebar">
+      <div class="sidebar-top"><div class="brand" style="font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 20px;">Simply<br>Meds</div></div>
+      <div class="sidebar-menu">
+        <div class="nav-item" onclick="window.location.href='dashboard.html'"><i data-lucide="home"></i></div>
+        <div class="nav-item" onclick="window.location.href='pos.html'"><i data-lucide="shopping-bag"></i></div>
+        <div class="nav-item" onclick="window.location.href='customers.html'"><i data-lucide="users"></i></div>
+        <div class="nav-item" onclick="window.location.href='transactions.html'"><i data-lucide="file-text"></i></div>
+        <div class="nav-item active" onclick="window.location.href='medicines.html'"><i data-lucide="pill"></i></div>
+        <div class="nav-item" onclick="window.location.href='inventory.html'"><i data-lucide="package"></i></div>
+      </div>
+      <div class="sidebar-bottom"><div class="nav-item"><i data-lucide="power"></i></div><img src="https://i.pravatar.cc/150?img=11" alt="User" class="avatar"></div>
+    </aside>
+
+    <div class="main-wrapper">
+      <header class="header"><div class="header-left"><h1>Data Obat</h1></div></header>
+      <div class="page-content">
+        <div class="action-bar">
+          <h2 style="font-size:15px;">Daftar Obat</h2>
+          <button class="btn-primary" onclick="openModal()"><i data-lucide="plus" size="14"></i> Tambah</button>
+        </div>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>KODE</th>
+                <th>NAMA OBAT</th>
+                <th>MODAL</th>
+                <th>JUAL</th>
+                <th>STOK</th>
+                <th>AKSI</th>
+              </tr>
+            </thead>
+            <tbody id="medicine-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal-overlay" id="medicine-modal">
+    <div class="modal-content">
+      <h2 id="modal-title">Daftarkan Obat Baru</h2>
+      <form id="medicine-form">
+        <input type="hidden" id="med-id">
+        
+        <div class="form-group">
+          <label>Kode Angka / Barcode</label>
+          <div class="input-group">
+            <!-- ONINPUT INI MEMAKSA HANYA ANGKA YANG BISA DIKETIK -->
+            <input type="text" id="med-sku" required placeholder="Ketik angka saja..." oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+            <button type="button" class="btn-generate" onclick="generateSKU()">Acak</button>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Nama Obat</label>
+          <input type="text" id="med-name" required placeholder="Contoh: Paracetamol">
+        </div>
+        <div class="form-group">
+          <label>Deskripsi / Dosis</label>
+          <input type="text" id="med-desc" required placeholder="Contoh: 500 mg">
+        </div>
+        <div style="display:flex; gap:10px;">
+          <div class="form-group" style="flex:1;">
+            <label>Harga Modal</label>
+            <input type="number" id="med-cost" required min="0" placeholder="3000">
+          </div>
+          <div class="form-group" style="flex:1;">
+            <label>Harga Jual</label>
+            <input type="number" id="med-price" required min="0" placeholder="5000">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Link Foto Produk (Opsional)</label>
+          <input type="url" id="med-image" placeholder="https://link-gambar.jpg">
+        </div>
+        <div class="form-group">
+          <label>Lokasi Rak</label>
+          <input type="text" id="med-rack" required placeholder="Contoh: A1-01">
+        </div>
+
+        <div style="background:#FEF3C7; color:#92400E; padding:8px; border-radius:4px; font-size:11px; margin-bottom:10px;">
+          ℹ️ Stok awal 0. Tambah stok via menu Bon.
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-cancel" onclick="closeModal()">Batal</button>
+          <button type="submit" class="btn-primary" id="btn-submit">Simpan</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  
+  <script src="js/medicines.js" type="module"></script>
+  <script>lucide.createIcons();</script>
+</body>
+</html>

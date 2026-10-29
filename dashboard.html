@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SimplyMeds - Dashboard</title>
+  
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css">
+  <link rel="stylesheet" href="css/layout.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap: 20px;
+      padding: 20px;
+      overflow-y: auto;
+      height: calc(100% - 70px); /* 70px adalah tinggi header */
+    }
+    .card {
+      background: var(--panel-white);
+      border-radius: var(--radius-md);
+      padding: 20px;
+      border: 1px solid var(--border-color);
+    }
+    .card-dark { background: var(--bg-dark); color: white; }
+    
+    /* Grid Placements untuk Desktop */
+    .medicine-info { grid-column: span 4; }
+    .active-salesman { grid-column: span 3; }
+    .prescriptions { grid-column: span 2; background: var(--accent-yellow-light); }
+    .recent-orders { grid-column: span 5; grid-row: span 2; }
+    .stock-alert { grid-column: span 7; grid-row: span 2; }
+    .expired { grid-column: span 3; background: #A63C52; color: white; }
+    .expiring-soon { grid-column: span 2; background: var(--accent-red); color: white; }
+    .invoices { grid-column: span 2; }
+    
+    h2 { font-size: 16px; margin-bottom: 15px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- SIDEBAR (Kiri) -->
+    <aside class="sidebar">
+      <div class="sidebar-top">
+        <div class="brand" style="font-size: 12px; font-weight: bold; text-align: center; margin-bottom: 20px;">Simply<br>Meds</div>
+      </div>
+      <div class="sidebar-menu">
+        <div class="nav-item active"><i data-lucide="home"></i></div>
+        <div class="nav-item" onclick="window.location.href='pos.html'"><i data-lucide="shopping-bag"></i></div>
+        <div class="nav-item" onclick="window.location.href='customers.html'"><i data-lucide="users"></i></div>
+        <div class="nav-item" onclick="window.location.href='transactions.html'"><i data-lucide="file-text"></i></div>
+        <div class="nav-item" onclick="window.location.href='medicines.html'"><i data-lucide="pill"></i></div>
+        <div class="nav-item" onclick="window.location.href='inventory.html'"><i data-lucide="package"></i></div>       </div>
+      <div class="sidebar-bottom">
+        <div class="nav-item"><i data-lucide="power"></i></div>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER (Kanan) -->
+    <div class="main-wrapper">
+      
+      <!-- HEADER (Ini yang tadi hilang) -->
+      <header class="header">
+        <div class="header-left">
+          <h1>Pharmacy Dashboard</h1>
+        </div>
+        <div class="header-right">
+          <div class="search-bar">
+            <i data-lucide="search" size="18"></i>
+            <input type="text" placeholder="Search">
+          </div>
+          <button class="icon-btn"><i data-lucide="help-circle"></i></button>
+          <button class="icon-btn"><i data-lucide="grid"></i></button>
+        </div>
+      </header>
+
+      <!-- KONTEN DASHBOARD -->
+      <div class="dashboard-grid">
+        
+        <!-- 1. Medicine Info -->
+        <div class="card card-dark medicine-info">
+          <h2>MEDICINE INFO</h2>
+          <div style="display:flex; justify-content:center; align-items:center; height:150px;">
+            <div style="width:120px; height:120px; border-radius:50%; border:20px solid var(--accent-green); display:flex; justify-content:center; align-items:center; font-size:24px; font-weight:bold;" id="total-medicine">
+              0
+            </div>
+          </div>
+          <div style="display:flex; justify-content:space-around; margin-top:15px;">
+            <div style="text-align:center;">
+              <span style="color:var(--accent-yellow-light); font-weight:bold;" id="low-stock">0</span><br><span style="font-size:12px;">Low Stock</span>
+            </div>
+            <div style="text-align:center;">
+              <span style="color:var(--accent-red); font-weight:bold;" id="out-stock">0</span><br><span style="font-size:12px;">Out of Stock</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. Active Salesman -->
+        <div class="card active-salesman">
+          <h2>ACTIVE SALESMAN</h2>
+          <div style="display:flex; gap:10px;">
+            <img src="https://i.pravatar.cc/150?img=3" style="width:50px; height:50px; border-radius:8px;">
+            <img src="https://i.pravatar.cc/150?img=4" style="width:50px; height:50px; border-radius:8px;">
+          </div>
+        </div>
+
+        <!-- 3. Prescriptions -->
+        <div class="card prescriptions">
+          <h2>PRESCRIPTIONS</h2>
+          <div style="display:flex; justify-content:space-between;">
+            <div><h3 style="color:var(--accent-blue);">25</h3><p style="font-size:12px;">Patient</p></div>
+            <div><h3 style="color:var(--accent-red);">25</h3><p style="font-size:12px;">Customer</p></div>
+          </div>
+        </div>
+
+        <!-- 4. Stock Alert -->
+        <div class="card stock-alert">
+          <h2>STOCK ALERT</h2>
+          <table style="width:100%; text-align:left; font-size:13px; border-collapse: collapse;">
+            <thead style="color:var(--text-secondary); border-bottom:1px solid #eee;">
+              <tr><th>PATIENT</th><th>BRAND</th><th>STOCK</th><th>RACK</th><th>STATUS</th></tr>
+            </thead>
+            <tbody>
+              <tr style="border-bottom:1px solid #eee;">
+                <td style="padding:10px 0;">Allevia</td>
+                <td>Syndr</td>
+                <td><span style="background:var(--accent-red); color:white; padding:2px 8px; border-radius:4px;">0</span></td>
+                <td>G2S04</td>
+                <td><span style="background:#FEF3C7; color:#92400E; padding:2px 8px; border-radius:4px; font-size:11px;">Requested</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- 5. Recent Orders -->
+        <div class="card recent-orders">
+          <h2>RECENT ORDERS</h2>
+          <div id="recent-orders-list" style="font-size:13px;">
+            <p style="color:gray;">Belum ada transaksi.</p>
+          </div>
+        </div>
+
+        <!-- 6. Expired -->
+        <div class="card expired">
+          <h2>EXPIRED <span style="background:#C42D4B; padding:2px 6px; border-radius:4px; font-size:12px;">3</span></h2>
+          <ul style="list-style:none; font-size:13px; display:flex; flex-direction:column; gap:10px; margin-top:15px;">
+            <li>Alagra 150 mg <span style="float:right;">08 Jul</span></li>
+            <li>Alerid 0.05% <span style="float:right;">08 Jul</span></li>
+          </ul>
+        </div>
+
+        <!-- 7. Expiring Soon -->
+        <div class="card expiring-soon">
+          <h2>EXPIRING SOON <span style="background:#E85A4F; padding:2px 6px; border-radius:4px; font-size:12px;">34</span></h2>
+          <div style="margin-top:20px; display:flex; gap:10px;">
+            <button style="border:none; padding:5px 10px; border-radius:20px; background:white; color:var(--accent-red);">July (4)</button>
+            <button style="border:none; padding:5px 10px; border-radius:20px; background:rgba(255,255,255,0.2); color:white;">August (17)</button>
+          </div>
+        </div>
+
+        <!-- 8. Invoices -->
+        <div class="card invoices">
+          <h2>INVOICES</h2>
+          <div style="display:flex; align-items:center; gap:15px;">
+            <i data-lucide="file-text" size="36" color="var(--accent-blue)"></i>
+            <h3 style="font-size:24px; color:var(--accent-blue);">4,623</h3>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  
+  <script>lucide.createIcons();</script>
+  <script type="module" src="js/dashboard.js"></script>
+</body>
+</html>
