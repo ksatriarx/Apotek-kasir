@@ -4,7 +4,6 @@ import { collection, getDocs, doc, runTransaction, serverTimestamp } from "https
 let productsData = []; 
 let cart = [];
 
-// Fungsi untuk memformat angka menjadi format Rupiah Indonesia
 function formatRupiah(angka) {
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
@@ -13,7 +12,6 @@ function formatRupiah(angka) {
   }).format(angka);
 }
 
-// 1. Ambil data dari Firestore
 async function fetchProducts() {
   const grid = document.getElementById('product-grid');
   grid.innerHTML = '<p>Loading data obat...</p>';
@@ -31,7 +29,6 @@ async function fetchProducts() {
   }
 }
 
-// 2. Render Produk
 function renderProducts(dataToRender = productsData) {
   const grid = document.getElementById('product-grid');
   
@@ -56,7 +53,6 @@ function renderProducts(dataToRender = productsData) {
   lucide.createIcons();
 }
 
-// 3. Tambah ke Keranjang
 window.addToCart = function(id) {
   const product = productsData.find(p => p.id === id);
   if (!product || product.stock <= 0) return alert('Stok habis!');
@@ -71,7 +67,6 @@ window.addToCart = function(id) {
   updateCartUI();
 };
 
-// 4. Ubah Qty
 window.changeQty = function(id, delta) {
   const item = cart.find(i => i.id === id);
   if (!item) return;
@@ -87,7 +82,6 @@ window.changeQty = function(id, delta) {
   updateCartUI();
 };
 
-// 5. Update UI Keranjang
 function updateCartUI() {
   const container = document.getElementById('cart-items');
   document.getElementById('cart-count').innerText = cart.length;
@@ -110,7 +104,6 @@ function updateCartUI() {
   calculateTotals();
 }
 
-// 6. Kalkulasi Total
 function calculateTotals() {
   const subtotal = cart.reduce((sum, item) => sum + (item.price * item.qty), 0);
   const discountPercent = parseFloat(document.getElementById('discount-percent').value) || 0;
@@ -129,7 +122,6 @@ function calculateTotals() {
   dueEl.style.color = totalDue < 0 ? 'var(--accent-red)' : 'var(--accent-green)';
 }
 
-// 7. FITUR PENCARIAN
 document.getElementById('search-input').addEventListener('input', (e) => {
   const keyword = e.target.value.toLowerCase();
   const filteredProducts = productsData.filter(product => {
@@ -140,7 +132,9 @@ document.getElementById('search-input').addEventListener('input', (e) => {
   renderProducts(filteredProducts);
 });
 
-// 8. SIMPAN TRANSAKSI (SUDAH DIPERBAIKI)
+// ==========================================
+// BAGIAN TRANSAKSI YANG SUDAH DIPERBAIKI TOTAL
+// ==========================================
 document.getElementById('btn-save').addEventListener('click', async () => {
   if (cart.length === 0) return alert('Keranjang kosong!');
   
@@ -152,39 +146,34 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   
   try {
     await runTransaction(db, async (transaction) => {
-      // ==========================================
-      // TAHAP 1: BACA SEMUA STOK OBAT TERLEBIH DAHULU
-      // ==========================================
-      const itemsToUpdate = [];
       
+      // TAHAP 1: BACA SEMUA STOK OBAT TERLEBIH DAHULU
+      const itemsToUpdate = [];
       for (const item of cart) {
         const medRef = doc(db, "medicines", item.id);
-        const medDoc = await transaction.get(medRef); // Baca data
+        const medDoc = await transaction.get(medRef);
         
-        if (!medDoc.exists()) throw "Obat tidak ditemukan!";
+        if (!medDoc.exists()) {
+          throw new Error("Obat tidak ditemukan!");
+        }
         
         const currentStock = medDoc.data().stock;
         if (currentStock - item.qty < 0) {
-          throw `Stok ${item.name} tidak cukup!`;
+          throw new Error(`Stok ${item.name} tidak cukup!`);
         }
         
-        // Simpan data yang akan diupdate ke dalam array
         itemsToUpdate.push({
           ref: medRef,
           newStock: currentStock - item.qty
         });
       }
 
-      // ==========================================
-      // TAHAP 2: LAKUKAN UPDATE STOK (SETELAH BACA SELESAI)
-      // ==========================================
+      // TAHAP 2: UPDATE STOK (SETELAH SEMUA BACA SELESAI)
       for (const updateData of itemsToUpdate) {
         transaction.update(updateData.ref, { stock: updateData.newStock });
       }
 
-      // ==========================================
       // TAHAP 3: SIMPAN DATA TRANSAKSI
-      // ==========================================
       const trxRef = doc(collection(db, "transactions"));
       transaction.set(trxRef, {
         transactionId: trxRef.id,
@@ -204,7 +193,7 @@ document.getElementById('btn-save').addEventListener('click', async () => {
     
   } catch (error) {
     console.error("Transaksi gagal: ", error);
-    alert('Gagal menyimpan transaksi: ' + error);
+    alert('Gagal menyimpan transaksi: ' + error.message);
   } finally {
     btnSave.innerHTML = 'SAVE <i data-lucide="chevron-up"></i>';
     btnSave.disabled = false;
@@ -212,9 +201,7 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   }
 });
 
-// Event Listeners
 document.getElementById('discount-percent').addEventListener('input', calculateTotals);
 document.getElementById('amount-received').addEventListener('input', calculateTotals);
 
-// INITIALIZATION
 fetchProducts();
