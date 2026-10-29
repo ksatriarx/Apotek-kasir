@@ -24,14 +24,14 @@ async function fetchProducts() {
     querySnapshot.forEach((doc) => {
       productsData.push({ id: doc.id, ...doc.data() });
     });
-    renderProducts(); // Panggil fungsi render awal
+    renderProducts(); 
   } catch (error) {
     console.error("Error fetching data: ", error);
     grid.innerHTML = '<p style="color:red;">Gagal memuat data obat.</p>';
   }
 }
 
-// 2. Render Produk (Menerima parameter data yang akan ditampilkan)
+// 2. Render Produk
 function renderProducts(dataToRender = productsData) {
   const grid = document.getElementById('product-grid');
   
@@ -129,22 +129,18 @@ function calculateTotals() {
   dueEl.style.color = totalDue < 0 ? 'var(--accent-red)' : 'var(--accent-green)';
 }
 
-// 7. FITUR PENCARIAN (Nama atau Barcode/SKU)
+// 7. FITUR PENCARIAN
 document.getElementById('search-input').addEventListener('input', (e) => {
   const keyword = e.target.value.toLowerCase();
-  
-  // Filter array productsData berdasarkan Nama atau SKU
   const filteredProducts = productsData.filter(product => {
     const matchName = product.name.toLowerCase().includes(keyword);
     const matchSku = product.sku ? product.sku.toLowerCase().includes(keyword) : false;
     return matchName || matchSku;
   });
-
-  // Tampilkan hasil filter ke layar
   renderProducts(filteredProducts);
 });
 
-// 8. SIMPAN TRANSAKSI
+// 8. SIMPAN TRANSAKSI (SUDAH DIPERBAIKI)
 document.getElementById('btn-save').addEventListener('click', async () => {
   if (cart.length === 0) return alert('Keranjang kosong!');
   
@@ -156,18 +152,39 @@ document.getElementById('btn-save').addEventListener('click', async () => {
   
   try {
     await runTransaction(db, async (transaction) => {
+      // ==========================================
+      // TAHAP 1: BACA SEMUA STOK OBAT TERLEBIH DAHULU
+      // ==========================================
+      const itemsToUpdate = [];
+      
       for (const item of cart) {
         const medRef = doc(db, "medicines", item.id);
-        const medDoc = await transaction.get(medRef);
+        const medDoc = await transaction.get(medRef); // Baca data
         
         if (!medDoc.exists()) throw "Obat tidak ditemukan!";
         
-        const newStock = medDoc.data().stock - item.qty;
-        if (newStock < 0) throw `Stok ${item.name} tidak cukup!`;
+        const currentStock = medDoc.data().stock;
+        if (currentStock - item.qty < 0) {
+          throw `Stok ${item.name} tidak cukup!`;
+        }
         
-        transaction.update(medRef, { stock: newStock });
+        // Simpan data yang akan diupdate ke dalam array
+        itemsToUpdate.push({
+          ref: medRef,
+          newStock: currentStock - item.qty
+        });
       }
 
+      // ==========================================
+      // TAHAP 2: LAKUKAN UPDATE STOK (SETELAH BACA SELESAI)
+      // ==========================================
+      for (const updateData of itemsToUpdate) {
+        transaction.update(updateData.ref, { stock: updateData.newStock });
+      }
+
+      // ==========================================
+      // TAHAP 3: SIMPAN DATA TRANSAKSI
+      // ==========================================
       const trxRef = doc(collection(db, "transactions"));
       transaction.set(trxRef, {
         transactionId: trxRef.id,
